@@ -1,89 +1,59 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const pokeButton = document.getElementById("poke-button");
+    const pokeInput = document.getElementById("pokemon");
+    const pokeImageFront = document.getElementById("poke-img-front");
+    const pokeImageBack = document.getElementById("poke-img-back");
+    const statsContainer = document.querySelector(".stats");
 
-    let pokeButton = document.getElementById("poke-button");
-    let yugiButton = document.getElementById("yugi-button");
+    
+    async function init() {
+        try {
+            const [statRes, genRes] = await Promise.all([
+                fetch("https://pokeapi.co/api/v2/stat/1/"),
+                fetch("https://pokeapi.co/api/v2/generation/3/")
+            ]);
+            const statData = await statRes.json();
+            const genData = await genRes.json();
+
+            statsContainer.innerHTML = `
+                <p><span class="state-value">${statData.name.toUpperCase()}</span> Stat</p>
+                <p><span class="state-value">${statData.id}</span> ID Stat</p>
+                <p><span class="state-value">${genData.name.toUpperCase()}</span> Gen</p>
+                <p><span class="state-value">${genData.main_region.name}</span> Região</p>
+                <p><span class="state-value">${genData.abilities[0].name}</span> Habilidade</p>
+            `;
+        } catch (err) {
+            console.error(err);
+        }
+    }
 
    
     pokeButton.addEventListener("click", async () => {
+        const query = pokeInput.value.trim().toLowerCase();
+        if (!query) return alert("Digite um nome ou ID!");
+
         try {
-            let pokeInputText = document.getElementById("pokemon").value;
-        
-            if (!pokeInputText)
-                return alert("Campo de nome/id vazio!");
+            const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${query}`);
+            if (!res.ok) return alert("Pokémon não encontrado!");
 
-            let response = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokeInputText}`);
-            let data = await response.json();
+            const data = await res.json();
 
-            let pokeImage = document.getElementById("poke-img");
-            pokeImage.src = data.sprites.front_default;
-        } catch (error) {
-            console.log("Erro: " + error);
+           
+            pokeImageFront.src = data.sprites.front_default || "";
+            pokeImageBack.src = data.sprites.back_default || "";
+
+         
+            statsContainer.innerHTML = `
+                <p><span class="state-value">${data.name.toUpperCase()}</span> Nome</p>
+                <p><span class="state-value">#${data.id}</span> ID</p>
+                <p><span class="state-value">${data.height}</span> Altura</p>
+                <p><span class="state-value">${data.weight}</span> Peso</p>
+                <p><span class="state-value">${data.types[0].type.name}</span> Tipo</p>
+            `;
+        } catch (err) {
+            console.error(err);
         }
-
     });
 
-  
-    yugiButton.addEventListener("click", () => {
-
-        let yugiInputText = document.getElementById("yugioh").value;
-
-        if (!yugiInputText)
-            return alert("Campo de nome vazio!");
-
-        let yugiImage = document.getElementById("yugi-img");
-
-        fetch(`https://db.ygoprodeck.com/api/v7/cardinfo.php?name=${yugiInputText}`)
-            .then(res => res.json())
-            .then(data => {
-                if (data.data && data.data.length > 0)
-                    yugiImage.src = data.data[0].card_images[0].image_url;
-                else
-                    alert("Carta não encontrada!");
-            })
-            .catch(error => console.log("Erro: " + error));
-    });
-});document.addEventListener('DOMContentLoaded', () => {
-
-    let pokeButton = document.getElementById("poke-button");
-    let yugiButton = document.getElementById("yugi-button");
-
-    
-    pokeButton.addEventListener("click", async () => {
-        try {
-            let pokeInputText = document.getElementById("pokemon").value;
-        
-            if (!pokeInputText)
-                return alert("Campo de nome/id vazio!");
-
-            let response = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokeInputText}`);
-            let data = await response.json();
-
-            let pokeImage = document.getElementById("poke-img");
-            pokeImage.src = data.sprites.front_default;
-        } catch (error) {
-            console.log("Erro: " + error);
-        }
-
-    });
-
-    
-    yugiButton.addEventListener("click", () => {
-
-        let yugiInputText = document.getElementById("yugioh").value;
-
-        if (!yugiInputText)
-            return alert("Campo de nome vazio!");
-
-        let yugiImage = document.getElementById("yugi-img");
-
-        fetch(`https://db.ygoprodeck.com/api/v7/cardinfo.php?name=${yugiInputText}`)
-            .then(res => res.json())
-            .then(data => {
-                if (data.data && data.data.length > 0)
-                    yugiImage.src = data.data[0].card_images[0].image_url;
-                else
-                    alert("Carta não encontrada!");
-            })
-            .catch(error => console.log("Erro: " + error));
-    });
+    init();
 });
